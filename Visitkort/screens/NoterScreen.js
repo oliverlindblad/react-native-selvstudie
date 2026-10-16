@@ -1,18 +1,49 @@
-import { useState } from 'react';
-import { View, Text, TextInput, FlatList, StyleSheet } from 'react-native';
+import { useState, useEffect } from 'react';
+import { View, Text, TextInput, FlatList, ActivityIndicator, StyleSheet } from 'react-native';
 import Knap from '../components/Knap';
 import NoteKort from '../components/NoteKort';
 import { HVID } from '../constants/farver';
+import { lytTilNoter, opretNote, sletNote } from '../services/noteService';
 
-// Side 3: listen med smagsnoter
-export default function NoterScreen({ navigation, noter, setNoter }) {
+// Side 3: listen med smagsnoter, nu fra Firestore
+export default function NoterScreen({ navigation }) {
+  const [noter, setNoter] = useState([]);
+  const [indlaeser, setIndlaeser] = useState(true);
   const [tekst, setTekst] = useState('');
 
-  function tilfoejNote() {
+  // Start med at lytte til Firestore, når skærmen vises.
+  // Hver gang en note oprettes, rettes eller slettes (også fra en anden
+  // telefon), kalder Firestore vores callback med den nye liste.
+  useEffect(() => {
+    const stopLytning = lytTilNoter((nyeNoter) => {
+      setNoter(nyeNoter);
+      setIndlaeser(false);
+    });
+
+    // Funktionen, der returneres fra useEffect, kører, når skærmen forlades.
+    // Så stopper vi med at lytte, så vi ikke bruger data unødigt.
+    return stopLytning;
+  }, []);
+
+  async function tilfoejNote() {
     if (tekst.trim() === '') return;
-    const nyNote = { id: Date.now().toString(), text: tekst.trim() };
-    setNoter([...noter, nyNote]);
-    setTekst('');
+    const nyTekst = tekst.trim();
+    setTekst(''); // ryd feltet med det samme, så appen føles hurtig
+
+    try {
+      await opretNote(nyTekst);
+      // Vi behøver IKKE opdatere listen selv: onSnapshot gør det automatisk
+    } catch (fejl) {
+      console.log('Kunne ikke oprette note:', fejl);
+    }
+  }
+
+  async function slet(id) {
+    try {
+      await sletNote(id);
+    } catch (fejl) {
+      console.log('Kunne ikke slette note:', fejl);
+    }
   }
 
   return (
@@ -30,22 +61,25 @@ export default function NoterScreen({ navigation, noter, setNoter }) {
         <Knap tekst="Tilføj" onPress={tilfoejNote} style={styles.tilfoejKnap} />
       </View>
 
-      <FlatList
-        style={styles.liste}
-        data={noter}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <NoteKort
-            note={item}
-            // Send kun id'et med. Detaljesiden slår selv noten op i listen,
-            // så den altid viser den nyeste version.
-            onPress={() => navigation.navigate('Detalje', { noteId: item.id })}
-          />
-        )}
-        ListEmptyComponent={
-          <Text style={styles.tomTekst}>Ingen noter endnu. Skriv den første!</Text>
-        }
-      />
+      {indlaeser ? (
+        <ActivityIndicator color={HVID} size="large" style={styles.spinner} />
+      ) : (
+        <FlatList
+          style={styles.liste}
+          data={noter}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <NoteKort
+              note={item}
+              onPress={() => navigation.navigate('Detalje', { noteId: item.id })}
+              onSlet={() => slet(item.id)}
+            />
+          )}
+          ListEmptyComponent={
+            <Text style={styles.tomTekst}>Ingen noter endnu. Skriv den første!</Text>
+          }
+        />
+      )}
     </View>
   );
 }
@@ -77,6 +111,9 @@ const styles = StyleSheet.create({
   },
   liste: {
     flex: 1,
+  },
+  spinner: {
+    marginTop: 40,
   },
   tomTekst: {
     color: HVID,

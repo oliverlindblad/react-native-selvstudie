@@ -1,31 +1,75 @@
-import { useState } from 'react';
-import { View, Text, TextInput, StyleSheet } from 'react-native';
-import Knap from '../components/Knap';
+import { useState, useEffect, useLayoutEffect } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  Keyboard,
+  ActivityIndicator,
+  StyleSheet,
+} from 'react-native';
 import { HVID } from '../constants/farver';
+import { hentNote, opdaterNote } from '../services/noteService';
 
-// Side 4: hele noten, som kan redigeres og gemmes
-export default function DetaljeScreen({ route, navigation, noter, opdaterNote }) {
-  // route.params er det, der blev sendt med i navigation.navigate('Detalje', { noteId })
+// Side 4: hele noten, hentet fra Firestore ud fra dens id
+export default function DetaljeScreen({ route, navigation }) {
   const { noteId } = route.params;
-  const note = noter.find((n) => n.id === noteId);
 
-  // Startværdien er notens tekst. Herefter redigerer brugeren en lokal kopi,
-  // som først gemmes i den rigtige liste, når der trykkes GEM.
-  const [tekst, setTekst] = useState(note ? note.text : '');
+  const [tekst, setTekst] = useState('');
+  const [indlaeser, setIndlaeser] = useState(true);
+  const [findes, setFindes] = useState(true);
 
-  // Sikkerhedsnet, hvis noten ikke findes (fx hvis den er blevet slettet)
-  if (!note) {
+  // Hent noten fra Firestore, når skærmen åbnes
+  useEffect(() => {
+    async function indlaes() {
+      const note = await hentNote(noteId);
+      if (note) {
+        setTekst(note.text);
+      } else {
+        setFindes(false);
+      }
+      setIndlaeser(false);
+    }
+    indlaes();
+  }, [noteId]);
+
+  async function gem() {
+    if (tekst.trim() === '') return;
+    Keyboard.dismiss();
+    try {
+      await opdaterNote(noteId, tekst.trim());
+      navigation.goBack();
+      // Listen opdaterer sig selv via onSnapshot, så vi skal ikke sende noget tilbage
+    } catch (fejl) {
+      console.log('Kunne ikke gemme note:', fejl);
+    }
+  }
+
+  // GEM-knap i headeren. [tekst] sørger for, at gem() altid bruger den nyeste tekst.
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Pressable onPress={gem} hitSlop={10}>
+          <Text style={styles.gemTekst}>GEM</Text>
+        </Pressable>
+      ),
+    });
+  }, [navigation, tekst]);
+
+  if (indlaeser) {
+    return (
+      <View style={styles.side}>
+        <ActivityIndicator color={HVID} size="large" />
+      </View>
+    );
+  }
+
+  if (!findes) {
     return (
       <View style={styles.side}>
         <Text style={styles.fejl}>Noten findes ikke længere.</Text>
       </View>
     );
-  }
-
-  function gem() {
-    if (tekst.trim() === '') return; // en note må ikke være tom
-    opdaterNote(noteId, tekst.trim());
-    navigation.goBack(); // tilbage til listen
   }
 
   return (
@@ -34,13 +78,9 @@ export default function DetaljeScreen({ route, navigation, noter, opdaterNote })
         style={styles.input}
         value={tekst}
         onChangeText={setTekst}
-        multiline // flere linjer, så hele noten kan ses
-        textAlignVertical="top" // Android starter ellers teksten i midten
-        autoFocus
+        multiline
+        textAlignVertical="top"
       />
-      <View style={styles.centreret}>
-        <Knap tekst="GEM" onPress={gem} />
-      </View>
     </View>
   );
 }
@@ -49,7 +89,6 @@ const styles = StyleSheet.create({
   side: {
     flex: 1,
     padding: 24,
-    paddingBottom: 40,
   },
   input: {
     flex: 1,
@@ -59,8 +98,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
   },
-  centreret: {
-    alignItems: 'center',
+  gemTekst: {
+    color: HVID,
+    fontSize: 17,
+    fontWeight: 'bold',
   },
   fejl: {
     color: HVID,
