@@ -6,6 +6,7 @@ import ForsideScreen from './screens/ForsideScreen';
 import OmOsScreen from './screens/OmOsScreen';
 import NoterScreen from './screens/NoterScreen';
 import DetaljeScreen from './screens/DetaljeScreen';
+import KameraScreen from './screens/KameraScreen';
 import { GROEN, HVID } from './constants/farver';
 
 const Stack = createNativeStackNavigator();
@@ -34,6 +35,15 @@ export default function App() {
         <Stack.Screen name="OmOs" component={OmOsScreen} options={{ title: 'Om os' }} />
         <Stack.Screen name="Noter" component={NoterScreen} options={{ title: 'Smagsnoter' }} />
         <Stack.Screen name="Detalje" component={DetaljeScreen} options={{ title: 'Note' }} />
+        <Stack.Screen
+          name="Kamera"
+          component={KameraScreen}
+          options={{
+            title: 'Tag billede',
+            headerTransparent: true, // headeren ligger ovenpå kameraet
+            contentStyle: { backgroundColor: '#000' },
+          }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

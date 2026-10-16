@@ -26,7 +26,7 @@ export function opretNote(tekst) {
   });
 }
 
-// READ (realtid): kald callback med den nyeste liste, hver gang noget ændrer sig.
+// READ (realtid): hele listen. Kalder callback, hver gang noget ændrer sig.
 // Returnerer en funktion, der stopper lytningen igen.
 export function lytTilNoter(callback) {
   const q = query(noterRef, orderBy('oprettet', 'asc'));
@@ -34,6 +34,13 @@ export function lytTilNoter(callback) {
   return onSnapshot(q, (snapshot) => {
     const noter = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
     callback(noter);
+  });
+}
+
+// READ (realtid): én note. Kalder callback med noten, eller null hvis den er slettet.
+export function lytTilNote(id, callback) {
+  return onSnapshot(doc(db, 'noter', id), (snapshot) => {
+    callback(snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null);
   });
 }
 
