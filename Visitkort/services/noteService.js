@@ -32,7 +32,6 @@ export function lytTilNoter(callback) {
   const q = query(noterRef, orderBy('oprettet', 'asc'));
 
   return onSnapshot(q, (snapshot) => {
-    // Lav Firestore-dokumenterne om til almindelige objekter: { id, text, oprettet }
     const noter = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
     callback(noter);
   });
@@ -48,6 +47,15 @@ export async function hentNote(id) {
 // UPDATE: ret teksten på en eksisterende note
 export function opdaterNote(id, nyTekst) {
   return updateDoc(doc(db, 'noter', id), { text: nyTekst });
+}
+
+// UPDATE: gem billedets sti og URL på noten.
+// Selve billedet ligger i Supabase Storage. Firestore gemmer kun, hvor det ligger.
+export function opdaterNoteBillede(id, billede) {
+  return updateDoc(doc(db, 'noter', id), {
+    billedSti: billede.sti,
+    billedUrl: billede.url,
+  });
 }
 
 // DELETE: slet en note

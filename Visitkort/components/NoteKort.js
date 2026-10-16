@@ -1,4 +1,4 @@
-import { View, Pressable, Text, StyleSheet } from 'react-native';
+import { View, Pressable, Text, Image, StyleSheet } from 'react-native';
 import { GULD, HVID } from '../constants/farver';
 
 const MAKS_TEGN = 25;
@@ -14,6 +14,8 @@ export default function NoteKort({ note, onPress, onSlet }) {
         onPress={onPress}
         style={({ pressed }) => [styles.tekstOmraade, pressed && styles.trykket]}
       >
+        {/* Lille thumbnail, hvis noten har et billede */}
+        {note.billedUrl && <Image source={{ uri: note.billedUrl }} style={styles.thumbnail} />}
         <Text style={styles.tekst}>{kortTekst}</Text>
       </Pressable>
 
@@ -26,7 +28,7 @@ export default function NoteKort({ note, onPress, onSlet }) {
 
 const styles = StyleSheet.create({
   note: {
-    flexDirection: 'row', // tekst til venstre, kryds til højre
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: HVID,
     borderRadius: 10,
@@ -35,13 +37,22 @@ const styles = StyleSheet.create({
     borderLeftColor: GULD,
   },
   tekstOmraade: {
-    flex: 1, // teksten tager al pladsen, krydset ikke bruger
+    flex: 1,
+    flexDirection: 'row', // thumbnail og tekst ved siden af hinanden
+    alignItems: 'center',
+    gap: 12,
     padding: 14,
   },
   trykket: {
     opacity: 0.6,
   },
+  thumbnail: {
+    width: 40,
+    height: 40,
+    borderRadius: 6,
+  },
   tekst: {
+    flex: 1,
     fontSize: 16,
     color: '#333',
   },

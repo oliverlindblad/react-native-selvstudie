@@ -4,6 +4,7 @@ import Knap from '../components/Knap';
 import NoteKort from '../components/NoteKort';
 import { HVID } from '../constants/farver';
 import { lytTilNoter, opretNote, sletNote } from '../services/noteService';
+import { sletBillede } from '../services/billedService';
 
 // Side 3: listen med smagsnoter, nu fra Firestore
 export default function NoterScreen({ navigation }) {
@@ -38,9 +39,14 @@ export default function NoterScreen({ navigation }) {
     }
   }
 
-  async function slet(id) {
+  async function slet(note) {
     try {
-      await sletNote(id);
+      await sletNote(note.id);
+      // Har noten et billede, slettes filen også i Supabase,
+      // ellers ville den ligge der for evigt uden at blive brugt
+      if (note.billedSti) {
+        await sletBillede(note.billedSti);
+      }
     } catch (fejl) {
       console.log('Kunne ikke slette note:', fejl);
     }
@@ -72,7 +78,7 @@ export default function NoterScreen({ navigation }) {
             <NoteKort
               note={item}
               onPress={() => navigation.navigate('Detalje', { noteId: item.id })}
-              onSlet={() => slet(item.id)}
+              onSlet={() => slet(item)}
             />
           )}
           ListEmptyComponent={
