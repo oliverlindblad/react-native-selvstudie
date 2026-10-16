@@ -19,11 +19,16 @@ import { db } from '../config/firebase';
 const noterRef = collection(db, 'noter');
 
 // CREATE: opret en ny note. Firestore giver den selv et unikt id.
-export function opretNote(tekst) {
-  return addDoc(noterRef, {
+// placering er valgfri: { latitude, longitude } når noten oprettes fra kortet.
+export function opretNote(tekst, placering = null) {
+  const nyNote = {
     text: tekst,
     oprettet: serverTimestamp(), // tidspunktet sættes af Firebase-serveren
-  });
+  };
+  if (placering) {
+    nyNote.placering = placering;
+  }
+  return addDoc(noterRef, nyNote);
 }
 
 // READ (realtid): hele listen. Kalder callback, hver gang noget ændrer sig.

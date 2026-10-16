@@ -7,6 +7,7 @@ import OmOsScreen from './screens/OmOsScreen';
 import NoterScreen from './screens/NoterScreen';
 import DetaljeScreen from './screens/DetaljeScreen';
 import KameraScreen from './screens/KameraScreen';
+import KortScreen from './screens/KortScreen'; // på web vælges KortScreen.web.js automatisk
 import { GROEN, HVID } from './constants/farver';
 
 const Stack = createNativeStackNavigator();
@@ -44,6 +45,7 @@ export default function App() {
             contentStyle: { backgroundColor: '#000' },
           }}
         />
+        <Stack.Screen name="Kort" component={KortScreen} options={{ title: 'Kort' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

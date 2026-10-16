@@ -1,5 +1,13 @@
-import { useState, useEffect } from 'react';
-import { View, Text, TextInput, FlatList, ActivityIndicator, StyleSheet } from 'react-native';
+import { useState, useEffect, useLayoutEffect } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  FlatList,
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+} from 'react-native';
 import Knap from '../components/Knap';
 import NoteKort from '../components/NoteKort';
 import { HVID } from '../constants/farver';
@@ -11,6 +19,17 @@ export default function NoterScreen({ navigation }) {
   const [noter, setNoter] = useState([]);
   const [indlaeser, setIndlaeser] = useState(true);
   const [tekst, setTekst] = useState('');
+
+  // "Kort"-knap i headeren øverst til højre
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Pressable onPress={() => navigation.navigate('Kort')} hitSlop={10}>
+          <Text style={styles.headerKnap}>Kort</Text>
+        </Pressable>
+      ),
+    });
+  }, [navigation]);
 
   // Start med at lytte til Firestore, når skærmen vises.
   // Hver gang en note oprettes, rettes eller slettes (også fra en anden
@@ -91,6 +110,11 @@ export default function NoterScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
+  headerKnap: {
+    color: HVID,
+    fontSize: 17,
+    fontWeight: 'bold',
+  },
   side: {
     flex: 1,
     padding: 24,
