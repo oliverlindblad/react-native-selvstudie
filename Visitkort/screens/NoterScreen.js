@@ -4,35 +4,27 @@ import Knap from '../components/Knap';
 import NoteKort from '../components/NoteKort';
 import { HVID } from '../constants/farver';
 
-// Side 3: smagsnoter (opgave 2)
-export default function NoterScreen({ noter, setNoter, onTilbage }) {
-  // Teksten i inputfeltet lige nu. Den behøver kun at leve på denne side.
+// Side 3: listen med smagsnoter
+export default function NoterScreen({ navigation, noter, setNoter }) {
   const [tekst, setTekst] = useState('');
 
   function tilfoejNote() {
-    if (tekst.trim() === '') return; // ingen tomme noter
-
-    // Hver note er et objekt med et unikt id, som FlatList bruger som key
+    if (tekst.trim() === '') return;
     const nyNote = { id: Date.now().toString(), text: tekst.trim() };
-
-    // Lav en NY liste med den nye note til sidst. Brug ikke noter.push(),
-    // for så opdager React ikke ændringen.
     setNoter([...noter, nyNote]);
-    setTekst(''); // ryd inputfeltet
+    setTekst('');
   }
 
   return (
     <View style={styles.side}>
-      <Text style={styles.overskrift}>Smagsnoter</Text>
-
       <View style={styles.inputRaekke}>
         <TextInput
           style={styles.input}
           placeholder="Skriv en note om en øl..."
           placeholderTextColor="#999"
-          value={tekst} // feltet viser altid det, der ligger i state
-          onChangeText={setTekst} // og opdaterer state, når man skriver
-          onSubmitEditing={tilfoejNote} // Enter på tastaturet tilføjer også noten
+          value={tekst}
+          onChangeText={setTekst}
+          onSubmitEditing={tilfoejNote}
           returnKeyType="done"
         />
         <Knap tekst="Tilføj" onPress={tilfoejNote} style={styles.tilfoejKnap} />
@@ -42,32 +34,27 @@ export default function NoterScreen({ noter, setNoter, onTilbage }) {
         style={styles.liste}
         data={noter}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <NoteKort note={item} />}
-        // Vises når listen er tom
+        renderItem={({ item }) => (
+          <NoteKort
+            note={item}
+            // Send kun id'et med. Detaljesiden slår selv noten op i listen,
+            // så den altid viser den nyeste version.
+            onPress={() => navigation.navigate('Detalje', { noteId: item.id })}
+          />
+        )}
         ListEmptyComponent={
           <Text style={styles.tomTekst}>Ingen noter endnu. Skriv den første!</Text>
         }
       />
-
-      <View style={styles.centreret}>
-        <Knap tekst="Tilbage" onPress={onTilbage} />
-      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   side: {
-    flex: 1, // vigtigt: ellers ved FlatList ikke hvor meget plads den har
+    flex: 1,
     padding: 24,
-    paddingTop: 60,
     paddingBottom: 40,
-  },
-  overskrift: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: HVID,
-    marginBottom: 16,
   },
   inputRaekke: {
     flexDirection: 'row',
@@ -75,7 +62,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   input: {
-    flex: 1, // inputfeltet tager den plads, knappen ikke bruger
+    flex: 1,
     backgroundColor: HVID,
     borderRadius: 10,
     paddingHorizontal: 14,
@@ -96,8 +83,5 @@ const styles = StyleSheet.create({
     opacity: 0.7,
     textAlign: 'center',
     marginTop: 20,
-  },
-  centreret: {
-    alignItems: 'center',
   },
 });

@@ -4,11 +4,11 @@ import { faelles } from '../constants/faellesStyles';
 import { GROEN, GULD } from '../constants/farver';
 
 // Side 1: selve visitkortet
-export default function ForsideScreen({ onOmOs, onNoter }) {
+// "navigation" får alle skærme automatisk fra React Navigation
+export default function ForsideScreen({ navigation }) {
   return (
     <View style={faelles.side}>
       <View style={faelles.kort}>
-        {/* Stien starter med ../ fordi filen nu ligger i screens-mappen */}
         <Image
           source={require('../assets/carlsberg.png')}
           style={styles.logo}
@@ -33,8 +33,9 @@ export default function ForsideScreen({ onOmOs, onNoter }) {
       </View>
 
       <View style={styles.knapRaekke}>
-        <Knap tekst="Om os" onPress={onOmOs} />
-        <Knap tekst="Smagsnoter" onPress={onNoter} />
+        {/* Navnet skal matche name="..." i App.js */}
+        <Knap tekst="Om os" onPress={() => navigation.navigate('OmOs')} />
+        <Knap tekst="Smagsnoter" onPress={() => navigation.navigate('Noter')} />
       </View>
     </View>
   );
@@ -67,7 +68,7 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
   knapRaekke: {
-    flexDirection: 'row', // knapperne ved siden af hinanden
+    flexDirection: 'row',
     gap: 12,
   },
 });
