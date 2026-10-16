@@ -26,7 +26,7 @@ function Forside({ onOmOs }) {
     <View style={styles.side}>
       <View style={styles.kort}>
         {/* Skift til ./assets/carlsberg-logo.png når du har gemt logoet i assets-mappen */}
-        <Image source={require("./assets/icon.png")} style={styles.logo} />
+        <Image source={require("./assets/carlsberg.png")} style={styles.logo} />
 
         <Text style={styles.titel}>Carlsberg</Text>
         <Text style={styles.undertitel}>Siden 1847</Text>
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   },
   logo: {
     width: 100,
-    height: 100,
+    height: 93,
     marginBottom: 16,
   },
   titel: {
